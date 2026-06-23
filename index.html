@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coworking Finansal Simülatör (TCMB Enflasyon Entegrasyonlu)</title>
+    <!-- Tailwind CSS ve FontAwesome İkon Kütüphanesi -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Özel Kaydırma Çubuğu Tasarımı */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.4);
+        }
+        /* Grid Desen Arkaplanı */
+        .grid-bg {
+            background-image: radial-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 p-3 md:p-6 min-h-screen grid-bg font-sans antialiased">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Üst Başlık Alanı -->
+        <header class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-5 md:p-6 border border-slate-800/80 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="bg-emerald-500/10 text-emerald-400 text-[10px] md:text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-500/20">Operasyonel Analiz</span>
+                    <span class="bg-indigo-500/10 text-indigo-400 text-[10px] md:text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider border border-indigo-500/20">CFO Kontrol Paneli v3</span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black text-white mt-2 tracking-tight">Coworking CFO Simülatörü</h1>
+                <p class="text-slate-400 text-xs md:text-sm mt-1 max-w-2xl leading-relaxed">
+                    TCMB Piyasa Katılımcıları Anketi yıl sonu enflasyon beklentisini otomatik entegre eden, dinamik doluluk yönetimi ve yapay zeka CFO strateji destekli planlama aracı.
+                </p>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <button onclick="kaydetVerileri()" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold py-3 px-5 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Verileri Kaydet
+                </button>
+                <button onclick="acSifirlaModal()" class="flex-1 md:flex-none bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-xs font-bold py-3 px-5 rounded-xl transition-all border border-slate-750 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Sıfırla
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Özet Metrik Kartları -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl p-5 border border-slate-800 shadow-lg relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Simüle Aylık Gelir</span>
+                <h3 id="card-toplam-gelir" class="text-2xl font-extrabold text-emerald-400 mt-2 tracking-tight">+0 TL</h3>
+                <span class="text-[10px] text-slate-500 mt-1 block">Seçili dolu odalara göre aktif gelir</span>
+            </div>
+            <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl p-5 border border-slate-800 shadow-lg relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-all"></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Aylık Toplam Gider</span>
+                <h3 id="card-toplam-gider" class="text-2xl font-extrabold text-rose-450 mt-2 tracking-tight">-0 TL</h3>
+                <span class="text-[10px] text-slate-500 mt-1 block">Tüm operasyonel OPEX kalemleri</span>
+            </div>
+            <div id="card-kar-zarar-container" class="rounded-2xl p-5 border transition-all duration-300 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-slate-550/10 rounded-full blur-xl"></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Net Dönem Karı</span>
+                <h3 id="card-net-kar" class="text-2xl font-extrabold mt-2 tracking-tight">0 TL</h3>
+                <span id="card-kar-marj" class="text-[10px] block mt-1 font-semibold">Marj: %0</span>
+            </div>
+            <div class="bg-slate-900/80 backdrop-blur-sm rounded-2xl p-5 border border-slate-800 shadow-lg relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Başabaş Noktası</span>
+                <h3 id="label-basabas-oran-kpi" class="text-2xl font-extrabold text-amber-450 mt-2 tracking-tight">%0</h3>
+                <span class="text-[10px] text-slate-500 mt-1 block">Gerekli min. doluluk rasyosu</span>
+            </div>
+        </div>
+
+        <!-- Ana Panel Grid Yapısı -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- SOL KOLON: Giriş Panelleri (Veri Ayarlama) -->
+            <div class="lg:col-span-6 flex flex-col gap-6">
+                
+                <!-- Canlı Doluluk Analizi & Harita Görünümü -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-compass text-indigo-400"></i> 1. Canlı Ofis Yerleşim Haritası
+                        </h2>
+                        <span id="label-durum" class="text-[10px] md:text-xs font-semibold px-3 py-1 rounded-full bg-slate-950"></span>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-3 bg-slate-950/80 p-4 rounded-xl border border-slate-850">
+                        <div class="text-center">
+                            <span class="text-[10px] text-slate-500 block">Doluluk Oranı</span>
+                            <span id="label-doluluk-yuzde" class="text-3xl font-black text-indigo-400">%0</span>
+                        </div>
+                        <div class="text-center border-x border-slate-850">
+                            <span class="text-[10px] text-slate-500 block">Dolu Oda/Kapasite</span>
+                            <span id="label-dolu-toplam-oda" class="text-lg font-bold text-slate-200 block mt-1">0 / 0</span>
+                        </div>
+                        <div class="text-center flex flex-col justify-center items-center">
+                            <span class="text-[10px] text-slate-500 block">Başabaş Oranı</span>
+                            <span id="label-basabas-oran" class="text-sm font-bold text-amber-400 mt-1">%0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Doluluk İlerleme Çubuğu -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>Mevcut Kapasite Kullanımı</span>
+                            <span id="progress-val">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden p-0.5 border border-slate-850">
+                            <div id="progress-doluluk" class="bg-indigo-500 h-full rounded-full transition-all duration-500 w-0 shadow-lg shadow-indigo-500/30"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Özel Ofis Odaları Giriş Kartı -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h2 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-door-open text-violet-400"></i> 2. Özel Ofis Tipleri & Canlı Doluluk
+                        </h2>
+                        <span id="total-office-potential-badge" class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">0 TL</span>
+                    </div>
+                    
+                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                        Ofis tiplerini belirleyin, adet ve fiyat girin. Aşağıdaki şemadan <strong>odaların doluluk durumunu (Dolu: Yeşil <i class="fa-solid fa-user-lock text-emerald-450"></i>, Boş: Gri <i class="fa-solid fa-door-closed text-slate-550"></i>)</strong> üzerine tıklayarak canlı yönetin.
+                    </p>
+                    
+                    <div id="ofis-odalari-container" class="space-y-4 max-h-[450px] overflow-y-auto pr-1 custom-scrollbar">
+                        <!-- Dinamik olarak ofis odaları listesi buraya dolacak -->
+                    </div>
+
+                    <!-- Yeni Ofis Odası Ekleme Formu -->
+                    <div class="mt-4 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input type="text" id="yeni-oda-ad" placeholder="Oda Tipi (Örn: 4 Kişilik)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:col-span-2 placeholder-slate-500" />
+                        <input type="number" id="yeni-oda-adet" placeholder="Adet" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full placeholder-slate-500" />
+                        <div class="flex gap-1">
+                            <input type="number" id="yeni-oda-fiyat" placeholder="Aylık (TL)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full placeholder-slate-500" />
+                            <button onclick="ekleYeniOda()" class="bg-violet-600 hover:bg-violet-500 active:scale-95 text-white rounded-xl px-4 transition-all flex items-center justify-center text-xs font-bold" title="Oda Tipi Ekle">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diğer Gelir Giriş Kartı -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h2 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-coins text-emerald-400"></i> 3. Diğer Gelir Kalemleri (100% Dolulukta)
+                        </h2>
+                    </div>
+                    
+                    <div id="gelir-inputs-container" class="space-y-3 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                        <!-- Dinamik olarak dolacak -->
+                    </div>
+
+                    <!-- Yeni Gelir Ekleme Formu -->
+                    <div class="mt-3 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="yeni-gelir-ad" placeholder="Gelir Adı (Örn: Sanal Ofis)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:col-span-2 placeholder-slate-500" />
+                        <div class="flex gap-1">
+                            <input type="number" id="yeni-gelir-tutar" placeholder="Tutar (TL)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full placeholder-slate-500" />
+                            <button onclick="ekleYeniGelir()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl px-4 transition-all flex items-center justify-center text-xs font-bold" title="Gelir Kalemi Ekle">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gider Giriş Kartı -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h2 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-rose-400"></i> 4. Aylık Sabit/Değişken Giderler (OPEX)
+                        </h2>
+                    </div>
+                    
+                    <div id="gider-inputs-container" class="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                        <!-- Dinamik olarak dolacak -->
+                    </div>
+
+                    <!-- Yeni Gider Ekleme Formu -->
+                    <div class="mt-3 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" id="yeni-gider-ad" placeholder="Gider Adı (Örn: Stopaj)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:col-span-2 placeholder-slate-500" />
+                        <div class="flex gap-1">
+                            <input type="number" id="yeni-gider-tutar" placeholder="Tutar (TL)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full placeholder-slate-500" />
+                            <button onclick="ekleYeniGider()" class="bg-rose-600 hover:bg-rose-500 active:scale-95 text-white rounded-xl px-4 transition-all flex items-center justify-center text-xs font-bold" title="Gider Kalemi Ekle">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SAĞ KOLON: Gösterge Paneli (Sonuçlar ve Dağılım) -->
+            <div class="lg:col-span-6 flex flex-col gap-6">
+                
+                <!-- Gelir & Gider Dağılım Çubuğu -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-300 uppercase tracking-wider text-[11px]">Bütçe Dengesi Oranı</span>
+                        <span id="label-gelir-gider-oran" class="text-slate-400 text-[11px]">Yükleniyor...</span>
+                    </div>
+                    <div class="w-full flex h-7 rounded-xl overflow-hidden shadow-inner bg-slate-950 p-1 border border-slate-850">
+                        <div id="bar-gelir" class="bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center text-[10px] text-white font-extrabold transition-all duration-500 rounded-lg" style="width: 50%">GELİR</div>
+                        <div id="bar-gider" class="bg-gradient-to-r from-rose-500 to-red-600 flex items-center justify-center text-[10px] text-white font-extrabold transition-all duration-500 rounded-lg" style="width: 50%">GİDER</div>
+                    </div>
+                </div>
+
+                <!-- Detaylı Muhasebe Rapor Tablosu -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h3 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-400"></i> Aktif Gelir / Gider Dağılım Tablosu
+                        </h3>
+                        
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead>
+                                    <tr class="text-slate-400 border-b border-slate-800 text-[10px] uppercase tracking-wider">
+                                        <th class="py-3">Kategori</th>
+                                        <th class="py-3">Kalem Detayı</th>
+                                        <th class="py-3 text-right">Potansiyel (100%)</th>
+                                        <th class="py-3 text-right">Aktif Simüle (TL)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detay-tablo-body" class="divide-y divide-slate-850">
+                                    <!-- Dinamik Satırlar -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENFLASYON BEKLENTİSİ & DENGE ÖNERİSİ -->
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-6 border border-slate-850 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                        <h3 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-trend-up text-amber-450"></i> 5. Yıl Sonu Enflasyon Projeksiyonu
+                        </h3>
+                        <!-- Canlı TCMB Veri Durumu Rozeti -->
+                        <div id="tcmb-status-badge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 transition-all duration-300">
+                            <i class="fa-solid fa-spinner animate-spin"></i>
+                            <span id="tcmb-status-text">TCMB Beklentisi Aranıyor...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 items-center">
+                        <div class="flex-1 w-full space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[11px] text-slate-400 block font-bold">Yıl Sonu Beklenen Enflasyon Oranı (%):</label>
+                                <button onclick="fetchTcmbEnflasyon()" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-all" title="Tekrar Sorgula">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Yenile
+                                </button>
+                            </div>
+                            <div class="relative rounded-xl shadow-inner">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <span class="text-slate-500 text-xs font-bold">%</span>
+                                </div>
+                                <input type="number" id="input-enflasyon" value="45" oninput="hesaplaVeGuncelle()" class="w-full bg-slate-950 border border-slate-850 rounded-xl py-2.5 pl-8 pr-3 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-amber-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 w-full sm:w-auto text-xs">
+                            <div class="bg-slate-950 border border-slate-850 p-3 rounded-xl text-center min-w-[120px]">
+                                <span class="text-[9px] text-slate-500 uppercase block font-bold">Proj. Yıl Sonu OPEX</span>
+                                <span id="label-proj-gider" class="text-xs font-black text-rose-400 block mt-1">0 TL</span>
+                            </div>
+                            <div class="bg-slate-950 border border-slate-850 p-3 rounded-xl text-center min-w-[120px]">
+                                <span class="text-[9px] text-slate-500 uppercase block font-bold">Hedef Yıl Sonu Gelir</span>
+                                <span id="label-hedef-gelir" class="text-xs font-black text-emerald-450 block mt-1">0 TL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Akıllı Strateji Kartı -->
+                <div class="bg-slate-950/80 p-5 rounded-2xl border border-slate-850 shadow-inner relative overflow-hidden group">
+                    <div class="absolute -left-12 -top-12 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl"></div>
+                    <h4 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-2 relative z-10">
+                        <i class="fa-solid fa-brain"></i> Dinamik CFO Analiz Raporu & Enflasyon Koruma Stratejisi
+                    </h4>
+                    <p id="cfo-analiz-metni" class="text-xs text-slate-300 leading-relaxed relative z-10">
+                        Analiz hazırlanıyor...
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PREMİUM SIFIRLAMA ONAY MODALİ -->
+    <div id="modal-sifirla" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-850 rounded-2xl max-w-md w-full p-6 mx-4 shadow-2xl transform scale-95 transition-all duration-300">
+            <div class="flex items-center gap-3 text-amber-500 mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                <h3 class="text-lg font-bold text-white">Verileri Sıfırla</h3>
+            </div>
+            <p class="text-slate-350 text-xs leading-relaxed mb-6">
+                Tüm oda yerleşimlerini, özel doluluk şemalarını ve yaptığınız gelir/gider değişikliklerini silip varsayılan başlangıç ayarlarına dönmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </p>
+            <div class="flex justify-end gap-3">
+                <button onclick="kapatSifirlaModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 px-4 rounded-xl transition-all">
+                    İptal Et
+                </button>
+                <button onclick="sifirlaVerileriGercek()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-md">
+                    Evet, Sıfırla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- VARSAYILAN SİMÜLASYON VERİLERİ ---
+        const varsayilanOfisOdalari = [
+            { id: 'o1', ad: '1-2 Kişilik Kompakt Ofis', adet: 8, fiyat: 15000, doluDurumlari: [true, true, true, false, false, false, false, false] },
+            { id: 'o2', ad: '3-4 Kişilik Standart Ofis', adet: 5, fiyat: 25000, doluDurumlari: [true, true, false, false, false] },
+            { id: 'o3', ad: '6-8 Kişilik Geniş Ofis', adet: 3, fiyat: 45000, doluDurumlari: [true, false, false] }
+        ];
+
+        const varsayilanGelirler = [
+            { id: 'g2', ad: 'Sabit Masalar (Açık Alan)', tutar: 80000, esnek: true },
+            { id: 'g3', ad: 'Esnek Masalar (Hot Desk)', tutar: 50000, esnek: true },
+            { id: 'g4', ad: 'Toplantı Odaları', tutar: 20000, esnek: true },
+            { id: 'g5', ad: 'Sanal Ofis Satışları', tutar: 15000, esnek: false } 
+        ];
+
+        const varsayilanGiderler = [
+            { id: 'h1', ad: 'Bina Ana Kirası (Sabit)', tutar: 110000 },
+            { id: 'h2', ad: 'Personel Giderleri', tutar: 55000 },
+            { id: 'h3', ad: 'Enerji, Elektrik, Isınma', tutar: 28000 },
+            { id: 'h4', ad: 'Temizlik & Sarf Malzemesi', tutar: 8000 },
+            { id: 'h5', ad: 'Çay & Kahve İkramları', tutar: 18000 },
+            { id: 'h6', ad: 'Vergiler & Harçlar', tutar: 12000 },
+            { id: 'h7', ad: 'Pazarlama & SEO Reklamları', tutar: 15000 }
+        ];
+
+        // --- UYGULAMA DURUM YÖNETİCİSİ (STATE) ---
+        let ofisOdalari = JSON.parse(localStorage.getItem('coworking_ofis_odalari')) || [...varsayilanOfisOdalari];
+        let gelirler = JSON.parse(localStorage.getItem('coworking_gelirler')) || [...varsayilanGelirler];
+        let giderler = JSON.parse(localStorage.getItem('coworking_giderler')) || [...varsayilanGiderler];
+        let dolulukOrani = 0;
+
+        // Geriye dönük veri uyumluluğu kontrolü
+        ofisOdalari.forEach(o => {
+            if (!o.doluDurumlari || o.doluDurumlari.length !== o.adet) {
+                o.doluDurumlari = Array(o.adet).fill(false);
+            }
+        });
+
+        // --- DOM ELEMENTLERİ ---
+        const labelDolulukYuzde = document.getElementById('label-doluluk-yuzde');
+        const labelDoluToplamOda = document.getElementById('label-dolu-toplam-oda');
+        const progressDoluluk = document.getElementById('progress-doluluk');
+        const progressVal = document.getElementById('progress-val');
+        const labelDurum = document.getElementById('label-durum');
+        const labelBasabasOran = document.getElementById('label-basabas-oran');
+        const labelBasabasOranKpi = document.getElementById('label-basabas-oran-kpi');
+        
+        const cardToplamGelir = document.getElementById('card-toplam-gelir');
+        const cardToplamGider = document.getElementById('card-toplam-gider');
+        const cardNetKar = document.getElementById('card-net-kar');
+        const cardKarMarj = document.getElementById('card-kar-marj');
+        const cardKarZararContainer = document.getElementById('card-kar-zarar-container');
+        
+        const barGelir = document.getElementById('bar-gelir');
+        const barGider = document.getElementById('bar-gider');
+        const labelGelirGiderOran = document.getElementById('label-gelir-gider-oran');
+        
+        const detayTabloBody = document.getElementById('detay-tablo-body');
+        const cfoAnalizMetni = document.getElementById('cfo-analiz-metni');
+
+        const ofisOdalariContainer = document.getElementById('ofis-odalari-container');
+        const gelirInputsContainer = document.getElementById('gelir-inputs-container');
+        const giderInputsContainer = document.getElementById('gider-inputs-container');
+        const totalOfficePotentialBadge = document.getElementById('total-office-potential-badge');
+        
+        const inputEnflasyon = document.getElementById('input-enflasyon');
+        const labelProjGider = document.getElementById('label-proj-gider');
+        const labelHedefGelir = document.getElementById('label-hedef-gelir');
+        const modalSifirla = document.getElementById('modal-sifirla');
+
+        const tcmbStatusBadge = document.getElementById('tcmb-status-badge');
+        const tcmbStatusText = document.getElementById('tcmb-status-text');
+
+        // Gemini API entegrasyonu için değişkenler
+        const apiKey = ""; 
+
+        // --- ENTEGRASYON MOTORU ---
+
+        function init() {
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            fetchTcmbEnflasyon(); // Açılışta otomatik TCMB beklentisini çek
+        }
+
+        // --- CANLI TCMB VERİSİ SORGULAMA MOTORU ---
+        async function fetchTcmbEnflasyon() {
+            tcmbStatusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 transition-all duration-300 animate-pulse border border-amber-500/20";
+            tcmbStatusText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> TCMB Verisi Aranıyor...`;
+
+            // Google Arama destekli akıllı Gemini çağrısı
+            const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = "Sen bir finans veri analistisin. Türkiye Cumhuriyet Merkez Bankası (TCMB) en güncel Piyasa Katılımcıları Anketi veya resmi enflasyon raporundaki 'yıl sonu tüketici enflasyonu (TÜFE) beklentisi' değerini bulmalısın. Sadece saf, temiz bir sayı dönmelisin. Örn: 43.52 veya 41. Çıktıda harf, kelime, yüzde işareti (%) veya açıklama kesinlikle bulunmamalıdır. Sadece sayı dön.";
+            const userQuery = "TCMB en son yayınlanan Piyasa Katılımcıları Anketi yıl sonu enflasyon beklentisi yüzde kaçtır? Güncel anket sonucundaki yıl sonu TÜFE beklentisi sayısal değerini bul ve yaz.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ "google_search": {} }] // En güncel TCMB verilerine erişmek için Google Search Grounding kullandık
+            };
+
+            let retries = 5;
+            let delay = 1000;
+            let success = false;
+            let finalValue = 44.2; // Hata durumunda güvenli yedek oran
+
+            while (retries > 0 && !success) {
+                try {
+                    const response = await fetch(modelUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('API Yanıt Vermedi');
+                    }
+
+                    const result = await response.json();
+                    const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (rawText) {
+                        // Gelen metinden sayısal değeri ayıklayalım (Örn: "44.11" veya "44,11")
+                        const cleanNumStr = rawText.replace(',', '.').replace(/[^0-9.]/g, '').trim();
+                        const parsedNum = parseFloat(cleanNumStr);
+
+                        if (!isNaN(parsedNum) && parsedNum > 10 && parsedNum < 150) {
+                            finalValue = parsedNum;
+                            success = true;
+                        }
+                    }
+                } catch (error) {
+                    retries--;
+                    if (retries > 0) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2; // Exponential Backoff
+                    }
+                }
+            }
+
+            if (success) {
+                inputEnflasyon.value = finalValue;
+                tcmbStatusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-450 border border-emerald-500/20 transition-all duration-300";
+                tcmbStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> TCMB Beklentisi Güncellendi: %${finalValue}`;
+                gosterBildirim(`TCMB Güncel Yıl Sonu Enflasyon Beklentisi (%${finalValue}) Otomatik Uygulandı!`, "bg-indigo-600");
+            } else {
+                tcmbStatusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 transition-all duration-300";
+                tcmbStatusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> TCMB Verisi Alınamadı`;
+                gosterBildirim("TCMB beklentisi alınamadı, bütçe varsayılan oranla devam ediyor.", "bg-rose-600");
+            }
+
+            hesaplaVeGuncelle();
+        }
+
+        // --- GÖRÜNÜM PANELLEME MOTORU ---
+        function renderGirisPanelleri() {
+            // 1. Özel Ofis Odaları Girişleri
+            ofisOdalariContainer.innerHTML = '';
+            ofisOdalari.forEach((o) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800/80 hover:border-slate-700 transition-all";
+                
+                let odalarHtml = '';
+                for (let i = 0; i < o.adet; i++) {
+                    const isDolu = o.doluDurumlari[i];
+                    odalarHtml += `
+                        <button onclick="toggleOdaDurum('${o.id}', ${i})" 
+                                class="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-[10px] font-bold transition-all duration-200 border shadow-sm active:scale-95
+                                ${isDolu ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-400 text-white hover:brightness-110' : 'bg-slate-950 border-slate-800 text-slate-500 hover:bg-slate-800 hover:text-slate-300'}">
+                            <i class="fa-solid ${isDolu ? 'fa-user-lock' : 'fa-door-closed'} mb-0.5"></i>
+                            <span>${i + 1}</span>
+                        </button>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                        <div class="flex-1">
+                            <input type="text" value="${o.ad}" oninput="guncelleOdaAd('${o.id}', this.value)" class="bg-transparent border-none text-xs font-extrabold text-slate-100 focus:ring-0 w-full p-0" />
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1">
+                                <span class="text-[9px] text-slate-500 font-bold uppercase">Adet:</span>
+                                <input type="number" value="${o.adet}" onchange="guncelleOdaAdet('${o.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg px-1.5 py-1 text-xs text-center text-white focus:outline-none w-12 font-bold focus:ring-1 focus:ring-indigo-500" />
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[9px] text-slate-500 font-bold uppercase">Aylık:</span>
+                                <input type="number" value="${o.fiyat}" oninput="guncelleOdaFiyat('${o.id}', this.value)" class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-right text-emerald-400 focus:outline-none w-20 font-bold focus:ring-1 focus:ring-indigo-500" />
+                                <span class="text-[10px] text-slate-500 font-bold">TL</span>
+                            </div>
+                            <button onclick="silOda('${o.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1.5 transition-all" title="Odayı Sil">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-indigo-400 font-extrabold uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fa-solid fa-border-all"></i> Doluluk Haritası (Tıkla ve Değiştir)
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            ${odalarHtml}
+                        </div>
+                    </div>
+                `;
+                ofisOdalariContainer.appendChild(div);
+            });
+
+            // 2. Diğer Gelir Kalemleri
+            gelirInputsContainer.innerHTML = '';
+            gelirler.forEach((g) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-2 bg-slate-900 p-3 rounded-xl border border-slate-850 hover:border-slate-800 transition-all";
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <span class="text-[11px] font-bold text-slate-300 block">${g.ad} ${g.esnek ? '<span class="text-[9px] text-amber-500 font-bold uppercase bg-amber-500/10 px-1.5 py-0.5 rounded ml-1">(Esnek)</span>' : '<span class="text-[9px] text-indigo-400 font-bold uppercase bg-indigo-500/10 px-1.5 py-0.5 rounded ml-1">(Sabit)</span>'}</span>
+                        <div class="flex items-center mt-1.5">
+                            <input type="number" value="${g.tutar}" oninput="guncelleGelirTutar('${g.id}', this.value)" class="bg-slate-950 border border-slate-850 rounded-lg px-2 py-1 text-xs text-white focus:outline-none w-32 font-bold focus:ring-1 focus:ring-indigo-500" />
+                            <span class="text-xs text-slate-500 font-bold ml-2">TL</span>
+                        </div>
+                    </div>
+                    <button onclick="silGelir('${g.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-2.5 transition-all" title="Sil">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                gelirInputsContainer.appendChild(div);
+            });
+
+            // 3. Gider Girişleri
+            giderInputsContainer.innerHTML = '';
+            giderler.forEach((h) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-2 bg-slate-900 p-3 rounded-xl border border-slate-850 hover:border-slate-800 transition-all";
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <span class="text-[11px] font-bold text-slate-300 block">${h.ad}</span>
+                        <div class="flex items-center mt-1.5">
+                            <input type="number" value="${h.tutar}" oninput="guncelleGiderTutar('${h.id}', this.value)" class="bg-slate-950 border border-slate-850 rounded-lg px-2 py-1 text-xs text-white focus:outline-none w-32 font-bold text-rose-350 focus:ring-1 focus:ring-rose-500" />
+                            <span class="text-xs text-slate-500 font-bold ml-2">TL</span>
+                        </div>
+                    </div>
+                    <button onclick="silGider('${h.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-2.5 transition-all" title="Sil">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                giderInputsContainer.appendChild(div);
+            });
+        }
+
+        // --- VERİ MODİFİKATÖRLERİ ---
+
+        function toggleOdaDurum(odaId, index) {
+            const oIdx = ofisOdalari.findIndex(o => o.id === odaId);
+            if (oIdx !== -1) {
+                ofisOdalari[oIdx].doluDurumlari[index] = !ofisOdalari[oIdx].doluDurumlari[index];
+                renderGirisPanelleri();
+                hesaplaVeGuncelle();
+            }
+        }
+
+        function guncelleOdaAd(id, yeniAd) {
+            const index = ofisOdalari.findIndex(o => o.id === id);
+            if (index !== -1) {
+                ofisOdalari[index].ad = yeniAd;
+                hesaplaVeGuncelle();
+            }
+        }
+
+        function guncelleOdaAdet(id, yeniAdet) {
+            const index = ofisOdalari.findIndex(o => o.id === id);
+            if (index !== -1) {
+                const adetSayisi = Math.max(1, Number(yeniAdet) || 0);
+                ofisOdalari[index].adet = adetSayisi;
+                
+                const eskiDoluDizi = ofisOdalari[index].doluDurumlari || [];
+                if (eskiDoluDizi.length < adetSayisi) {
+                    const fark = adetSayisi - eskiDoluDizi.length;
+                    ofisOdalari[index].doluDurumlari = [...eskiDoluDizi, ...Array(fark).fill(false)];
+                } else if (eskiDoluDizi.length > adetSayisi) {
+                    ofisOdalari[index].doluDurumlari = eskiDoluDizi.slice(0, adetSayisi);
+                }
+
+                renderGirisPanelleri();
+                hesaplaVeGuncelle();
+            }
+        }
+
+        function guncelleOdaFiyat(id, yeniFiyat) {
+            const index = ofisOdalari.findIndex(o => o.id === id);
+            if (index !== -1) {
+                ofisOdalari[index].fiyat = Number(yeniFiyat) || 0;
+                hesaplaVeGuncelle();
+            }
+        }
+
+        function guncelleGelirTutar(id, yeniTutar) {
+            const index = gelirler.findIndex(g => g.id === id);
+            if (index !== -1) {
+                gelirler[index].tutar = Number(yeniTutar) || 0;
+                hesaplaVeGuncelle();
+            }
+        }
+
+        function guncelleGiderTutar(id, yeniTutar) {
+            const index = giderler.findIndex(h => h.id === id);
+            if (index !== -1) {
+                giderler[index].tutar = Number(yeniTutar) || 0;
+                hesaplaVeGuncelle();
+            }
+        }
+
+        // --- YENİ ELEMAN EKLEME SİSTEMİ ---
+
+        function ekleYeniOda() {
+            const adInput = document.getElementById('yeni-oda-ad');
+            const adetInput = document.getElementById('yeni-oda-adet');
+            const fiyatInput = document.getElementById('yeni-oda-fiyat');
+
+            if (!adInput.value.trim() || !adetInput.value || !fiyatInput.value) {
+                gosterBildirim("Lütfen tüm alanları geçerli değerlerle doldurun.", "bg-amber-600");
+                return;
+            }
+
+            const adetSayisi = Number(adetInput.value);
+            const yeni = {
+                id: 'o_' + Date.now(),
+                ad: adInput.value.trim(),
+                adet: adetSayisi,
+                fiyat: Number(fiyatInput.value),
+                doluDurumlari: Array(adetSayisi).fill(false)
+            };
+
+            ofisOdalari.push(yeni);
+            adInput.value = '';
+            adetInput.value = '';
+            fiyatInput.value = '';
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            gosterBildirim("Yeni özel ofis tipi başarıyla eklendi!", "bg-indigo-600");
+        }
+
+        function ekleYeniGelir() {
+            const adInput = document.getElementById('yeni-gelir-ad');
+            const tutarInput = document.getElementById('yeni-gelir-tutar');
+
+            if (!adInput.value.trim() || !tutarInput.value) {
+                gosterBildirim("Lütfen gelir adını ve tutarını girin.", "bg-amber-600");
+                return;
+            }
+
+            const yeni = {
+                id: 'g_' + Date.now(),
+                ad: adInput.value.trim(),
+                tutar: Number(tutarInput.value),
+                esnek: true
+            };
+
+            gelirler.push(yeni);
+            adInput.value = '';
+            tutarInput.value = '';
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            gosterBildirim("Yeni gelir kalemi başarıyla eklendi!", "bg-emerald-600");
+        }
+
+        function ekleYeniGider() {
+            const adInput = document.getElementById('yeni-gider-ad');
+            const tutarInput = document.getElementById('yeni-gider-tutar');
+
+            if (!adInput.value.trim() || !tutarInput.value) {
+                gosterBildirim("Lütfen gider adını ve tutarını girin.", "bg-amber-600");
+                return;
+            }
+
+            const yeni = {
+                id: 'h_' + Date.now(),
+                ad: adInput.value.trim(),
+                tutar: Number(tutarInput.value)
+            };
+
+            giderler.push(yeni);
+            adInput.value = '';
+            tutarInput.value = '';
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            gosterBildirim("Yeni gider kalemi başarıyla eklendi!", "bg-rose-600");
+        }
+
+        // --- SİLME FONKSİYONLARI ---
+        function silOda(id) {
+            ofisOdalari = ofisOdalari.filter(o => o.id !== id);
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            gosterBildirim("Ofis tipi silindi.", "bg-slate-700");
+        }
+
+        function silGelir(id) {
+            gelirler = gelirler.filter(g => g.id !== id);
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            gosterBildirim("Gelir kalemi silindi.", "bg-slate-700");
+        }
+
+        function silGider(id) {
+            giderler = giderler.filter(h => h.id !== id);
+            renderGirisPanelleri();
+            hesaplaVeGuncelle();
+            gosterBildirim("Gider kalemi silindi.", "bg-slate-700");
+        }
+
+        // --- HESAPLAMA VE GÖRSEL GÜNCELLEME MOTORU ---
+        function hesaplaVeGuncelle() {
+            let toplamMaksimumGelir = 0;
+            let simuleToplamGelir = 0;
+            let toplamGider = 0;
+
+            let toplamOdaSayisi = 0;
+            let toplamDoluOda = 0;
+
+            ofisOdalari.forEach(o => {
+                toplamOdaSayisi += o.adet;
+                toplamDoluOda += o.doluDurumlari.filter(d => d).length;
+            });
+
+            dolulukOrani = toplamOdaSayisi > 0 ? Math.round((toplamDoluOda / toplamOdaSayisi) * 100) : 0;
+
+            detayTabloBody.innerHTML = '';
+
+            // 1. Ofis Odaları Gelirleri
+            let toplamOfisMaks = 0;
+            let toplamOfisSimule = 0;
+
+            ofisOdalari.forEach(o => {
+                const potansiyel = o.adet * o.fiyat;
+                toplamOfisMaks += potansiyel;
+
+                const doluAdet = o.doluDurumlari.filter(d => d).length;
+                const simule = doluAdet * o.fiyat;
+                toplamOfisSimule += simule;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3"><span class="bg-violet-500/10 text-violet-400 font-semibold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider border border-violet-500/10">Ofis Tipi</span></td>
+                    <td class="py-3 text-slate-200 font-semibold">${o.ad} <span class="text-slate-500 font-medium">(${doluAdet}/${o.adet} Dolu)</span></td>
+                    <td class="py-3 text-right text-slate-500 font-medium">${potansiyel.toLocaleString('tr-TR')} TL</td>
+                    <td class="py-3 text-right text-emerald-400 font-bold">+${simule.toLocaleString('tr-TR')} TL</td>
+                `;
+                detayTabloBody.appendChild(tr);
+            });
+
+            totalOfficePotentialBadge.textContent = `${toplamOfisMaks.toLocaleString('tr-TR')} TL / Maks`;
+
+            toplamMaksimumGelir += toplamOfisMaks;
+            simuleToplamGelir += toplamOfisSimule;
+
+            // 2. Diğer Gelir Kalemleri
+            gelirler.forEach(g => {
+                toplamMaksimumGelir += g.tutar;
+                const aktifSimule = g.esnek ? Math.round(g.tutar * (dolulukOrani / 100)) : g.tutar;
+                simuleToplamGelir += aktifSimule;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3"><span class="bg-emerald-500/10 text-emerald-450 font-semibold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider border border-emerald-500/10">Diğer Gelir</span></td>
+                    <td class="py-3 text-slate-200 font-semibold">${g.ad}</td>
+                    <td class="py-3 text-right text-slate-500 font-medium">${g.tutar.toLocaleString('tr-TR')} TL</td>
+                    <td class="py-3 text-right text-emerald-400 font-bold">+${aktifSimule.toLocaleString('tr-TR')} TL</td>
+                `;
+                detayTabloBody.appendChild(tr);
+            });
+
+            // 3. Aylık Giderler
+            giderler.forEach(h => {
+                toplamGider += h.tutar;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3"><span class="bg-rose-500/10 text-rose-450 font-semibold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider border border-rose-500/10">Gider (OPEX)</span></td>
+                    <td class="py-3 text-slate-200 font-semibold">${h.ad}</td>
+                    <td class="py-3 text-right text-slate-500 font-medium">${h.tutar.toLocaleString('tr-TR')} TL</td>
+                    <td class="py-3 text-right text-rose-450 font-bold">-${h.tutar.toLocaleString('tr-TR')} TL</td>
+                `;
+                detayTabloBody.appendChild(tr);
+            });
+
+            // Finansal Metrikler
+            const netKar = simuleToplamGelir - toplamGider;
+            const karMarji = simuleToplamGelir > 0 ? ((netKar / simuleToplamGelir) * 100).toFixed(1) : 0;
+            const basabasNoktasi = toplamMaksimumGelir > 0 ? Math.round((toplamGider / toplamMaksimumGelir) * 100) : 0;
+
+            // Göstergeleri Güncelleme
+            labelDolulukYuzde.textContent = `%${dolulukOrani}`;
+            labelDoluToplamOda.textContent = `${toplamDoluOda} / ${toplamOdaSayisi}`;
+            progressDoluluk.style.width = `${dolulukOrani}%`;
+            progressVal.textContent = `${dolulukOrani}%`;
+
+            cardToplamGelir.textContent = `+${simuleToplamGelir.toLocaleString('tr-TR')} TL`;
+            cardToplamGider.textContent = `-${toplamGider.toLocaleString('tr-TR')} TL`;
+            cardNetKar.textContent = `${netKar >= 0 ? '+' : ''}${netKar.toLocaleString('tr-TR')} TL`;
+            cardKarMarj.textContent = `Operasyonel Marj: %${karMarji}`;
+
+            labelBasabasOran.textContent = `%${basabasNoktasi}`;
+            labelBasabasOranKpi.textContent = `%${basabasNoktasi}`;
+
+            // Kar/Zarar Durum Renkleri
+            if (netKar >= 0) {
+                cardKarZararContainer.className = "rounded-2xl p-5 border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 transition-all duration-300 shadow-lg shadow-emerald-500/5";
+                labelDurum.textContent = "Kârlı Operasyon 🎉";
+                labelDurum.className = "text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm";
+            } else {
+                cardKarZararContainer.className = "rounded-2xl p-5 border bg-rose-500/10 border-rose-500/30 text-rose-400 transition-all duration-300 shadow-lg shadow-rose-500/5";
+                labelDurum.textContent = "Açık Var ⚠️";
+                labelDurum.className = "text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-sm";
+            }
+
+            // Bütçe Dağılım Çubuğu
+            const toplamHacim = simuleToplamGelir + toplamGider;
+            if (toplamHacim > 0) {
+                const gelirYuzde = ((simuleToplamGelir / toplamHacim) * 100).toFixed(0);
+                const giderYuzde = 100 - Number(gelirYuzde);
+                barGelir.style.width = `${gelirYuzde}%`;
+                barGider.style.width = `${giderYuzde}%`;
+                barGelir.textContent = `%${gelirYuzde} Gelir`;
+                barGider.textContent = `%${giderYuzde} Gider`;
+                
+                const giderOrani = simuleToplamGelir > 0 ? Math.round((toplamGider / simuleToplamGelir) * 100) : 0;
+                labelGelirGiderOran.textContent = `Ciro / Maliyet Oranı: %${giderOrani}`;
+            }
+
+            // --- ENFLASYON PROJEKSİYONU HESAPLARI ---
+            const enfOrani = Number(inputEnflasyon.value) || 0;
+            const projeksiyonluGider = Math.round(toplamGider * (1 + enfOrani / 100));
+            const hedefGelirYilSonu = Math.round(projeksiyonluGider * (netKar > 0 ? (1 + (parseFloat(karMarji) / 100)) : 1.20));
+
+            labelProjGider.textContent = `${projeksiyonluGider.toLocaleString('tr-TR')} TL`;
+            labelHedefGelir.textContent = `${hedefGelirYilSonu.toLocaleString('tr-TR')} TL`;
+
+            olusturCfoRapor(dolulukOrani, netKar, basabasNoktasi, toplamGider, simuleToplamGelir, enfOrani, projeksiyonluGider, hedefGelirYilSonu);
+        }
+
+        // Dinamik CFO Raporu & Strateji Algoritması
+        function olusturCfoRapor(doluluk, netKar, basabas, gider, gelir, enfOrani, projGider, hedefGelir) {
+            let analiz = "";
+            
+            if (netKar < 0) {
+                analiz = `⚠️ <strong>Kritik Eşik Analizi:</strong> Haritadaki oda doluluk durumunuza göre genel doluluğunuz %${doluluk}. Aylık operasyonel zararınız <strong>${Math.abs(netKar).toLocaleString('tr-TR')} TL</strong>. 
+                Sürdürülebilirlik için acilen doluluk oranını başabaş noktanız olan <strong>%${basabas}</strong> seviyesine çekmeniz gerekmektedir.<br><br>`;
+            } else {
+                analiz = `🚀 <strong>Başarılı Operasyon:</strong> Mevcut oda yerleşim düzeninizle %${doluluk} doluluk oranındasınız ve kârdasınız! Aylık net kârınız <strong>${netKar.toLocaleString('tr-TR')} TL</strong> seviyesinde.<br><br>`;
+            }
+
+            const gerekenFiyatArtisi = Math.round(enfOrani * 1.15);
+            
+            analiz += `📈 <strong>TCMB Enflasyon Beklentisi (%${enfOrani}) Işığında Bütçe Denge Önerisi:</strong><br>
+            TCMB'nin en güncel verilerinden otomatik olarak çekilen <strong>%${enfOrani}</strong> yıl sonu enflasyon beklentisi referans alındığında, mevcut aylık giderlerinizin yıl sonunda <strong>${projGider.toLocaleString('tr-TR')} TL</strong> seviyesine tırmanacağı simüle edilmektedir. 
+            Bu maliyet artışını telafi edip bütçe dengenizi korumanız ve kârlılığınızı aynı oranda sürdürebilmeniz için cironuzu aylık minimum <strong>${hedefGelir.toLocaleString('tr-TR')} TL</strong> seviyesine ulaştırmanız gerekmektedir. Önerilen stratejik aksiyon planı:<br>
+            <ul class="list-disc pl-5 mt-3 space-y-2 text-slate-300">
+                <li><strong>Enflasyon Uyumlu Fiyatlama:</strong> Yeni üyelerde ve kontrat yenilemelerinde oda fiyatlarınızı en az <strong>%${gerekenFiyatArtisi}</strong> oranında yukarı güncelleyerek gider baskısını sübvanse edin.</li>
+                <li><strong>Alansal Verimliliği Yükseltme:</strong> Operasyonel sabit maliyeti olmayan yüksek marjlı gelir kalemlerinizi (örneğin <em>Sanal Ofis Satışları</em> ve saatlik/günlük <em>Toplantı Odası</em> kullanımları) pazarlama kanallarıyla destekleyerek ciro payını artırın.</li>
+                <li><strong>Gider Limitleme:</strong> Temizlik sarf malzemeleri, ikramlar ve genel enerji tüketimi gibi doluluğa bağlı esnek giderleri, doluluk oranınız %75'in altına düştüğünde tasarruf moduna alacak bir 'akıllı tüketim' kuralına bağlayın.</li>
+            </ul>`;
+
+            cfoAnalizMetni.innerHTML = analiz;
+        }
+
+        // --- MODERN MODAL KONTROLLERİ ---
+        function acSifirlaModal() {
+            modalSifirla.classList.remove('hidden');
+            setTimeout(() => {
+                modalSifirla.classList.remove('opacity-0');
+                modalSifirla.querySelector('div').classList.remove('scale-95');
+                modalSifirla.querySelector('div').classList.add('scale-100');
+            }, 10);
+        }
+
+        function kapatSifirlaModal() {
+            modalSifirla.classList.add('opacity-0');
+            modalSifirla.querySelector('div').classList.remove('scale-100');
+            modalSifirla.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modalSifirla.classList.add('hidden');
+            }, 300);
+        }
+
+        function sifirlaVerileriGercek() {
+            localStorage.removeItem('coworking_ofis_odalari');
+            localStorage.removeItem('coworking_gelirler');
+            localStorage.removeItem('coworking_giderler');
+            ofisOdalari = JSON.parse(JSON.stringify(varsayilanOfisOdalari));
+            gelirler = JSON.parse(JSON.stringify(varsayilanGelirler));
+            giderler = JSON.parse(JSON.stringify(varsayilanGiderler));
+            
+            renderGirisPanelleri();
+            fetchTcmbEnflasyon(); // Sıfırladıktan sonra enflasyonu yeniden canlandır
+            kapatSifirlaModal();
+
+            gosterBildirim("Tüm veriler ve enflasyon modeli fabrika ayarlarına sıfırlandı!", "bg-amber-600");
+        }
+
+        // --- YEREL DEPOLAMA (LOCAL STORAGE) ---
+        function kaydetVerileri() {
+            localStorage.setItem('coworking_ofis_odalari', JSON.stringify(ofisOdalari));
+            localStorage.setItem('coworking_gelirler', JSON.stringify(gelirler));
+            localStorage.setItem('coworking_giderler', JSON.stringify(giderler));
+            
+            gosterBildirim("Ofis odaları doluluk durumları ve bütçe verileriniz başarıyla kaydedildi!", "bg-emerald-600");
+        }
+
+        // Özel Bildirim Kutusu (Toast) Oluşturucu
+        function gosterBildirim(mesaj, renkSinifi) {
+            const bildirim = document.createElement('div');
+            bildirim.className = `fixed bottom-4 right-4 ${renkSinifi} text-white text-xs font-bold py-3.5 px-5 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 z-50 flex items-center gap-2`;
+            bildirim.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${mesaj}`;
+            document.body.appendChild(bildirim);
+            
+            setTimeout(() => {
+                bildirim.classList.remove('translate-y-10', 'opacity-0');
+            }, 100);
+
+            setTimeout(() => {
+                bildirim.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => bildirim.remove(), 300);
+            }, 4000);
+        }
+
+        // Uygulamayı Başlat
+        window.onload = function() {
+            init();
+        }
+    </script>
+</body>
+</html>
