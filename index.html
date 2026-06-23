@@ -213,7 +213,7 @@
                         <input type="text" id="yeni-gider-ad" placeholder="Gider Adı (Örn: Stopaj)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:col-span-2 placeholder-slate-500" />
                         <div class="flex gap-1">
                             <input type="number" id="yeni-gider-tutar" placeholder="Tutar (TL)" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full placeholder-slate-500" />
-                            <button onclick="ekleYeniGider()" class="bg-rose-600 hover:bg-rose-550 active:scale-95 text-white rounded-xl px-4 transition-all flex items-center justify-center text-xs font-bold" title="Gider Kalemi Ekle">
+                            <button onclick="ekleYeniGider()" class="bg-rose-600 hover:bg-rose-500 active:scale-95 text-white rounded-xl px-4 transition-all flex items-center justify-center text-xs font-bold" title="Gider Kalemi Ekle">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                         </div>
@@ -268,8 +268,8 @@
                         <h3 class="font-extrabold text-white text-xs md:text-sm uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-arrow-trend-up text-amber-450"></i> 5. Yıl Sonu Enflasyon Projeksiyonu
                         </h3>
-                        <!-- Canlı TCMB Veri Durumu Rozeti (API anahtarı olmadığında da hatasız ve harika çalışır) -->
-                        <div id="tcmb-status-badge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 transition-all duration-300 cursor-pointer">
+                        <!-- Canlı TCMB Veri Durumu Rozeti (Sınırsız ve Anahtarsız Entegrasyon) -->
+                        <div id="tcmb-status-badge" onclick="acApiAyarlariModal()" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-450 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all duration-300 cursor-pointer">
                             <i class="fa-solid fa-spinner animate-spin"></i>
                             <span id="tcmb-status-text">TCMB Beklentisi Aranıyor...</span>
                         </div>
@@ -283,8 +283,8 @@
                                     <button onclick="fetchTcmbEnflasyon()" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-all" title="Tekrar Sorgula">
                                         <i class="fa-solid fa-arrows-rotate"></i> Yenile
                                     </button>
-                                    <button onclick="acApiAyarlariModal()" class="text-[10px] text-slate-400 hover:text-white font-semibold flex items-center gap-1 transition-all" title="API Ayarları">
-                                        <i class="fa-solid fa-gear"></i> Ayarlar
+                                    <button onclick="acApiAyarlariModal()" class="text-[10px] text-slate-400 hover:text-white font-semibold flex items-center gap-1 transition-all" title="Senaryo Seçenekleri">
+                                        <i class="fa-solid fa-sliders"></i> Senaryolar
                                     </button>
                                 </div>
                             </div>
@@ -345,29 +345,46 @@
         </div>
     </div>
 
-    <!-- API KEY AYARLARI MODALİ -->
-    <div id="modal-api" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-350">
-        <div class="bg-slate-900 border border-slate-850 rounded-2xl max-w-md w-full p-6 mx-4 shadow-2xl transform scale-95 transition-all duration-300">
+    <!-- ENFLASYON SENARYOLARI VE YAPILANDIRMA MODALİ -->
+    <div id="modal-api" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-slate-850 rounded-2xl max-w-lg w-full p-6 mx-4 shadow-2xl transform scale-95 transition-all duration-300">
             <div class="flex items-center gap-3 text-indigo-400 mb-4">
-                <i class="fa-solid fa-key text-2xl"></i>
-                <h3 class="text-lg font-bold text-white">Gemini API Canlı Bağlantısı</h3>
+                <i class="fa-solid fa-sliders text-2xl"></i>
+                <h3 class="text-lg font-bold text-white">CFO Enflasyon Senaryo Analizörü</h3>
             </div>
-            <p class="text-slate-300 text-xs leading-relaxed mb-4">
-                Siteniz canlı sunucuda (Vercel) çalıştığı için TCMB piyasa verilerini canlı olarak analiz edip çeken yapay zeka entegrasyonuna bir API Anahtarı tanımlamanız gerekmektedir.
+            <p class="text-slate-300 text-xs leading-relaxed mb-5">
+                Finansal bütçenizi test etmek için hazır resmi tahminleri kullanabilir, web'den anlık çekim yapabilir veya kendi öngörünüzü simüle edebilirsiniz.
             </p>
-            <div class="space-y-3 mb-6">
-                <label class="text-[11px] text-slate-400 font-bold block">Gemini API Anahtarı:</label>
-                <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-850 rounded-xl py-3 px-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 tracking-wider">
-                <a href="https://aistudio.google.com/" target="_blank" class="text-[10px] text-indigo-450 hover:underline inline-flex items-center gap-1 font-bold">
-                    <i class="fa-solid fa-square-arrow-up-right"></i> Google AI Studio'dan Ücretsiz API Key Al
-                </a>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="kapatApiAyarlariModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 px-4 rounded-xl transition-all">
-                    İptal
+            
+            <!-- Senaryo Seçim Grid Kartları -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <button onclick="senaryoUygula(26.0, 'TCMB Resmi Hedefi')" class="bg-slate-950 border border-slate-850 hover:border-indigo-500 p-4 rounded-xl text-left transition-all group">
+                    <span class="text-[9px] font-extrabold text-indigo-400 uppercase block tracking-wider">Hedef Bütçe</span>
+                    <span class="text-lg font-extrabold text-white block mt-1">%26.0</span>
+                    <span class="text-[10px] text-slate-500 mt-1 block">TCMB Resmi Enflasyon Yol Haritası Hedefi</span>
                 </button>
-                <button onclick="kaydetApiKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-md">
-                    Kaydet ve Yenile
+                <button onclick="senaryoUygula(29.14, 'OVP Projeksiyonu')" class="bg-slate-950 border border-slate-850 hover:border-indigo-500 p-4 rounded-xl text-left transition-all group">
+                    <span class="text-[9px] font-extrabold text-emerald-400 uppercase block tracking-wider">Mali Plan</span>
+                    <span class="text-lg font-extrabold text-white block mt-1">%29.14</span>
+                    <span class="text-[10px] text-slate-500 mt-1 block">Hükümet Orta Vadeli Program (OVP) Tahmini</span>
+                </button>
+                <button onclick="senaryoUygula(44.20, 'Piyasa Katılımcıları Beklentisi')" class="bg-slate-950 border border-slate-850 hover:border-indigo-500 p-4 rounded-xl text-left transition-all group">
+                    <span class="text-[9px] font-extrabold text-amber-500 uppercase block tracking-wider">Piyasa Gerçeği</span>
+                    <span class="text-lg font-extrabold text-white block mt-1">%44.20</span>
+                    <span class="text-[10px] text-slate-500 mt-1 block">Reel Sektör & Finansal Analiz Beklentisi</span>
+                </button>
+                <button onclick="fetchTcmbEnflasyon(); kapatApiAyarlariModal();" class="bg-indigo-950/40 border border-indigo-900/50 hover:border-indigo-500 p-4 rounded-xl text-left transition-all group flex flex-col justify-between">
+                    <div>
+                        <span class="text-[9px] font-extrabold text-indigo-300 uppercase block tracking-wider">Canlı Web Sorgusu</span>
+                        <span class="text-sm font-extrabold text-white block mt-1">Web'den Anlık Çek</span>
+                    </div>
+                    <span class="text-[10px] text-indigo-400 mt-1 block font-semibold"><i class="fa-solid fa-arrows-rotate animate-spin mr-1"></i> TCMB resmi verisini sorgula</span>
+                </button>
+            </div>
+            
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button onclick="kapatApiAyarlariModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 px-5 rounded-xl transition-all">
+                    Kapat
                 </button>
             </div>
         </div>
@@ -447,107 +464,104 @@
         const tcmbStatusBadge = document.getElementById('tcmb-status-badge');
         const tcmbStatusText = document.getElementById('tcmb-status-text');
 
-        // ==========================================
-        // 🔑 GEMINI API ANAHTARI BAĞLANTISI 🔑
-        // ==========================================
-        // Siteniz API anahtarı olmadan da kusursuz çalışacak şekilde hazırlandı.
+        // Siteniz API Anahtarsız çalışacak şekilde optimize edildi
         const apiKey = ""; 
-
-        // API Key getirme asistanı
-        function getApiKey() {
-            if (apiKey && apiKey !== "" && !apiKey.startsWith("BURAYA")) return apiKey;
-            return localStorage.getItem('gemini_api_key') || "";
-        }
 
         // --- ENTEGRASYON MOTORU ---
 
         function init() {
             renderGirisPanelleri();
             hesaplaVeGuncelle();
-            fetchTcmbEnflasyon(); // Açılışta otomatik TCMB beklentisini sorgula
+            fetchTcmbEnflasyon(); // Açılışta otomatik veri çekmeyi tetikle
         }
 
-        // --- CANLI TCMB VERİSİ SORGULAMA MOTORU (AKILLI VEYA VARSAYILAN BAĞLANTI) ---
+        // --- ANAHTARSIZ GÜVENLİ CANLI ENFLASYON SORGULAMA MOTORU ---
         async function fetchTcmbEnflasyon() {
-            const activeKey = getApiKey();
+            tcmbStatusBadge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 transition-all duration-300 animate-pulse cursor-pointer";
+            tcmbStatusText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> TCMB Verisi Çekiliyor...`;
 
-            if (!activeKey) {
-                // EĞER API ANAHTARI YOKSA: Hata göstermek yerine güncel TCMB verisini (%29.14) doğrudan yüklüyoruz!
-                inputEnflasyon.value = 29.14;
-                tcmbStatusBadge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 transition-all hover:bg-indigo-500/20 shadow-sm cursor-pointer animate-none";
-                tcmbStatusBadge.setAttribute("onclick", "acApiAyarlariModal()");
-                tcmbStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> TCMB Beklentisi (Canlı): %29.14`;
-                hesaplaVeGuncelle();
-                return;
-            }
+            try {
+                // AllOrigins CORS Proxy'si üzerinden doğrudan TCMB resmi ana sayfasından veri okuyoruz!
+                const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr'));
+                if (!response.ok) throw new Error('CORS proxy veya TCMB sunucusu yanıt vermedi.');
 
-            tcmbStatusBadge.removeAttribute("onclick");
-            tcmbStatusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 transition-all duration-300 animate-pulse border border-amber-500/20";
-            tcmbStatusText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> TCMB Verisi Aranıyor...`;
-
-            // Google Arama destekli akıllı Gemini çağrısı
-            const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
-            
-            const systemPrompt = "Sen bir finans veri analistisin. Türkiye Cumhuriyet Merkez Bankası (TCMB) en güncel Piyasa Katılımcıları Anketi veya resmi enflasyon raporundaki 'yıl sonu tüketici enflasyonu (TÜFE) beklentisi' değerini bulmalısın. Sadece saf, temiz bir sayı dönmelisin. Örn: 43.52 veya 41. Çıktıda harf, kelime, yüzde işareti (%) veya açıklama kesinlikle bulunmamalıdır. Sadece sayı dön.";
-            const userQuery = "TCMB en son yayınlanan Piyasa Katılımcıları Anketi yıl sonu enflasyon beklentisi yüzde kaçtır? Güncel anket sonucundaki yıl sonu TÜFE beklentisi sayısal değerini bul ve yaz.";
-
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                tools: [{ "google_search": {} }] // En güncel TCMB verilerine erişmek için Google Search Grounding kullandık
-            };
-
-            let retries = 5;
-            let delay = 1000;
-            let success = false;
-            let finalValue = 29.14; // Hata durumunda güvenli yedek oran
-
-            while (retries > 0 && !success) {
-                try {
-                    const response = await fetch(modelUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('API Yanıt Vermedi');
-                    }
-
-                    const result = await response.json();
-                    const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (rawText) {
-                        // Gelen metinden sayısal değeri ayıklayalım (Örn: "29.14")
-                        const cleanNumStr = rawText.replace(',', '.').replace(/[^0-9.]/g, '').trim();
-                        const parsedNum = parseFloat(cleanNumStr);
-
-                        if (!isNaN(parsedNum) && parsedNum > 10 && parsedNum < 150) {
-                            finalValue = parsedNum;
-                            success = true;
-                        }
-                    }
-                } catch (error) {
-                    retries--;
-                    if (retries > 0) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2; // Exponential Backoff
+                const data = await response.json();
+                const htmlContent = data.contents;
+                
+                // HTML içindeki fazla boşlukları temizleyerek regex ile TÜFE oranını arıyoruz
+                const cleanHtml = htmlContent.replace(/\s+/g, ' ');
+                const tufeRegex = /TÜFE\s*\(\s*Yıllık\s*%\s*\)[^0-9]{0,100}([0-9]+[,.][0-9]+)/i;
+                let match = cleanHtml.match(tufeRegex);
+                
+                let detectedValue = "";
+                if (match && match[1]) {
+                    detectedValue = match[1];
+                } else {
+                    // Alternatif Regex arama
+                    const altRegex = /TÜFE[^0-9]{0,50}([0-9]{2}[,.][0-9]{2})/i;
+                    const altMatch = cleanHtml.match(altRegex);
+                    if (altMatch && altMatch[1]) {
+                        detectedValue = altMatch[1];
                     }
                 }
-            }
 
-            if (success) {
-                inputEnflasyon.value = finalValue;
-                tcmbStatusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all duration-300";
-                tcmbStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> TCMB Beklentisi: %${finalValue}`;
-                gosterBildirim(`TCMB Enflasyon Beklentisi (%${finalValue}) Otomatik Güncellendi!`, "bg-indigo-600");
-            } else {
-                tcmbStatusBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 transition-all duration-300";
-                tcmbStatusText.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> TCMB Verisi Alınamadı`;
-                gosterBildirim("TCMB beklentisi alınamadı, bütçe varsayılan oranla devam ediyor.", "bg-rose-600");
-            }
+                if (detectedValue) {
+                    const parsedVal = parseFloat(detectedValue.replace(',', '.'));
+                    if (!isNaN(parsedVal) && parsedVal > 5 && parsedVal < 150) {
+                        inputEnflasyon.value = parsedVal;
+                        tcmbStatusBadge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition-all duration-300 cursor-pointer animate-none";
+                        tcmbStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> TCMB Canlı TÜFE: %${parsedVal}`;
+                        gosterBildirim(`TCMB Enflasyon Oranı (%${parsedVal}) Web Sitesinden Canlı Çekildi!`, "bg-emerald-600");
+                        hesaplaVeGuncelle();
+                        return;
+                    }
+                }
+                throw new Error("TCMB ana sayfasındaki veri yapısı okunamadı.");
 
+            } catch (error) {
+                console.warn("TCMB doğrudan okunamadı, Dünya Bankası Açık Veri Tabanı sorgulanıyor...", error);
+                
+                // YEDEK BAĞLANTI: Dünya Bankası'nın (World Bank) keyless, herkese açık API'si üzerinden Türkiye verisini çekiyoruz!
+                try {
+                    const wbResponse = await fetch('https://api.worldbank.org/v2/country/TUR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=5');
+                    if (wbResponse.ok) {
+                        const wbData = await wbResponse.json();
+                        if (wbData && wbData[1] && wbData[1].length > 0) {
+                            for (let record of wbData[1]) {
+                                if (record.value !== null) {
+                                    const parsedVal = parseFloat(record.value).toFixed(2);
+                                    inputEnflasyon.value = parsedVal;
+                                    tcmbStatusBadge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 transition-all duration-300 cursor-pointer animate-none";
+                                    tcmbStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> Dünya Bankası Canlı: %${parsedVal}`;
+                                    gosterBildirim(`Dünya Bankası Enflasyon Verisi (%${parsedVal}) uygulandı!`, "bg-indigo-600");
+                                    hesaplaVeGuncelle();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                } catch (wbError) {
+                    console.error("Dünya Bankası bağlantısı da kurulamadı:", wbError);
+                }
+
+                // EĞER İKİ CANLI BAĞLANTI DA BAŞARISIZ OLURSA: En güncel reel değer (%29.14) koruma mekanizması olarak otomatik atanır.
+                const defaultRate = 29.14;
+                inputEnflasyon.value = defaultRate;
+                tcmbStatusBadge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition-all duration-300 cursor-pointer animate-none";
+                tcmbStatusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> OVP Tahmini: %${defaultRate}`;
+                gosterBildirim("Canlı bağlantı sağlanamadı, referans OVP beklentisi (%29.14) uygulandı.", "bg-amber-600");
+                hesaplaVeGuncelle();
+            }
+        }
+
+        // --- SENARYO SEÇİM SİSTEMİ ---
+        function senaryoUygula(oran, senaryoAdi) {
+            inputEnflasyon.value = oran;
+            tcmbStatusBadge.className = "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 transition-all duration-300 cursor-pointer";
+            tcmbStatusText.innerHTML = `<i class="fa-solid fa-sliders"></i> ${senaryoAdi}: %${oran}`;
+            gosterBildirim(`${senaryoAdi} (%${oran}) başarıyla simüle edildi!`, "bg-indigo-600");
             hesaplaVeGuncelle();
+            kapatApiAyarlariModal();
         }
 
         // --- GÖRÜNÜM PANELLEME MOTORU ---
@@ -644,7 +658,7 @@
             });
         }
 
-        // --- VERI MODİFİKATÖRLERİ ---
+        // --- VERİ MODİFİKATÖRLERİ ---
 
         function toggleOdaDurum(odaId, index) {
             const oIdx = ofisOdalari.findIndex(o => o.id === odaId);
@@ -680,39 +694,6 @@
                 renderGirisPanelleri();
                 hesaplaVeGuncelle();
             }
-        }
-
-        // API Key İşlemleri
-        function acApiAyarlariModal() {
-            document.getElementById('input-api-key').value = localStorage.getItem('gemini_api_key') || '';
-            modalApi.classList.remove('hidden');
-            setTimeout(() => {
-                modalApi.classList.remove('opacity-0');
-                modalApi.querySelector('div').classList.remove('scale-95');
-                modalApi.querySelector('div').classList.add('scale-100');
-            }, 10);
-        }
-
-        function kapatApiAyarlariModal() {
-            modalApi.classList.add('opacity-0');
-            modalApi.querySelector('div').classList.remove('scale-100');
-            modalApi.querySelector('div').classList.add('scale-95');
-            setTimeout(() => {
-                modalApi.classList.add('hidden');
-            }, 300);
-        }
-
-        function kaydetApiKey() {
-            const key = document.getElementById('input-api-key').value.trim();
-            if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                gosterBildirim("Gemini API Anahtarı başarıyla kaydedildi!", "bg-emerald-600");
-            } else {
-                localStorage.removeItem('gemini_api_key');
-                gosterBildirim("API Anahtarı silindi.", "bg-slate-700");
-            }
-            kapatApiAyarlariModal();
-            fetchTcmbEnflasyon();
         }
 
         function guncelleOdaFiyat(id, yeniFiyat) {
@@ -911,7 +892,7 @@
                     <td class="py-3"><span class="bg-rose-500/10 text-rose-450 font-semibold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider border border-rose-500/10">Gider (OPEX)</span></td>
                     <td class="py-3 text-slate-200 font-semibold">${h.ad}</td>
                     <td class="py-3 text-right text-slate-500 font-medium">${h.tutar.toLocaleString('tr-TR')} TL</td>
-                    <td class="py-3 text-right text-rose-450 font-bold">-${h.tutar.toLocaleString('tr-TR')} TL</td>
+                    <td class="py-3 text-right text-rose-455 font-bold">-${h.tutar.toLocaleString('tr-TR')} TL</td>
                 `;
                 detayTabloBody.appendChild(tr);
             });
@@ -941,7 +922,7 @@
                 labelDurum.textContent = "Kârlı Operasyon 🎉";
                 labelDurum.className = "text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm";
             } else {
-                cardKarZararContainer.className = "rounded-2xl p-5 border bg-rose-500/10 border-rose-500/30 text-rose-450 transition-all duration-300 shadow-lg shadow-rose-500/5";
+                cardKarZararContainer.className = "rounded-2xl p-5 border bg-rose-500/10 border-rose-500/30 text-rose-455 transition-all duration-300 shadow-lg shadow-rose-500/5";
                 labelDurum.textContent = "Açık Var ⚠️";
                 labelDurum.className = "text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 shadow-sm";
             }
